@@ -1,0 +1,19 @@
+# Only the dashboard source, built page, documentation, and synthetic checks
+# belong in this repository. In particular, never stage Ford GDPR exports.
+/*
+!/.gitignore
+!/LICENSE
+!/README.md
+!/build.ps1
+!/index.html
+!/index.template.html
+!/app.js
+!/app.css
+!/engine.js
+!/map.js
+!/map.css
+!/field-defs.json
+!/geography.json
+!/test_engine.mjs
+!/test_dashboard.mjs
+!/test_real_export.mjs

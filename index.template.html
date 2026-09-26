@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Ford EV Data Studio · Local JSON analysis</title>
+  <style>
+__APP_CSS__
+  </style>
+  <style>
+__MAP_CSS__
+  </style>
+</head>
+<body>
+  <header class="fd-topbar">
+    <div class="fd-brand"><span class="fd-brand-mark">F</span><span>EV Data Studio <small>Local Ford export analysis</small></span></div>
+    <span class="fd-local-pill"><span class="fd-local-dot"></span>Runs on your device · no upload</span>
+  </header>
+
+  <main class="fd-shell">
+    <section class="fd-hero" id="import">
+      <div class="fd-hero-copy">
+        <div class="fd-eyebrow">Your vehicle data, reconstructed</div>
+        <h1>One place for charging, movement and vehicle signals.</h1>
+        <p>Choose one or more original Ford GDPR JSON files. This page reads them locally, reconnects split records when it can, and builds the report from the selected files alone.</p>
+        <div class="fd-hero-points"><span>◆ Charging sessions &amp; AC/DC</span><span>◆ Travel &amp; location timeline</span><span>◆ Battery evidence</span><span>◆ Field dictionary</span></div>
+      </div>
+      <div class="fd-import-card" id="dropZone">
+        <div class="fd-upload-icon" aria-hidden="true">⇧</div>
+        <h2>Load Ford JSON files</h2>
+        <p>Drop files here, or choose them from your computer. You can select any subset; the page will show coverage and missing fragments.</p>
+        <input id="jsonFiles" type="file" accept=".json,application/json" multiple hidden>
+        <button class="fd-button fd-button-primary" id="chooseFiles" type="button">Choose JSON files</button>
+        <div class="fd-selected-files" id="selectedFiles" aria-live="polite">No files selected</div>
+        <button class="fd-button fd-button-secondary" id="analyzeFiles" type="button" disabled>Build analysis</button>
+        <p class="fd-upload-note">Large exports can take a few minutes. The files never leave this browser.</p>
+      </div>
+    </section>
+
+    <div class="fd-progress" id="progressPanel" hidden role="status" aria-live="polite">
+      <div class="fd-progress-head"><strong id="progressTitle">Reading files</strong><span id="progressPercent">0%</span></div>
+      <div class="fd-progress-track"><div id="progressFill"></div></div>
+      <p id="progressDetail">Preparing the local analysis…</p>
+    </div>
+    <div class="fd-error" id="errorPanel" hidden role="alert"></div>
+
+    <div id="results" hidden>
+      <nav class="fd-section-nav" aria-label="Report sections">
+        <a href="#overview">Overview</a><a href="#charging">Charging</a><a href="#travel">Travel</a><a href="#map">Map timeline</a><a href="#battery">Battery</a><a href="#events">Vehicle events</a><a href="#dictionary">Data dictionary</a><a href="#downloads">Downloads</a>
+      </nav>
+
+      <section class="fd-section" id="overview">
+        <div class="fd-section-head"><div><div class="fd-eyebrow">01 / Summary</div><h2>What these files show</h2><p id="coverageText"></p></div><span class="fd-source-pill">JSON-only results</span></div>
+        <div class="fd-kpi-grid" id="kpiGrid"></div>
+        <div class="fd-quality" id="qualityPanel"></div>
+        <div class="fd-insight-grid" id="insightsGrid"></div>
+        <div class="fd-chart-grid">
+          <article class="fd-chart-card"><div class="fd-chart-title"><h3>Distance by month</h3><p>First to last odometer reading within each Zurich month</p></div><div id="mileageChart" class="fd-chart"></div></article>
+          <article class="fd-chart-card"><div class="fd-chart-title"><h3>Visible charging energy</h3><p>Counter subtotal by charge end month · missing tails and resets affect coverage</p></div><div id="monthlyEnergyChart" class="fd-chart"></div></article>
+          <article class="fd-chart-card"><div class="fd-chart-title"><h3>Daily distance pattern</h3><p>Within-day odometer movement; gaps between days are separate</p></div><div id="dailyDistanceChart" class="fd-chart"></div></article>
+          <article class="fd-chart-card"><div class="fd-chart-title"><h3>AC / DC mix</h3><p>Sessions and visible counter energy are different measures</p></div><div id="chargeMixChart" class="fd-chart"></div></article>
+        </div>
+        <div class="fd-table-card"><h3>Monthly overview</h3><div class="fd-table-wrap"><table id="monthlyTable"><thead><tr><th>Month</th><th>Odometer increase</th><th>AC sessions</th><th>DC sessions</th><th>Other/unknown</th><th>Visible counter kWh</th></tr></thead><tbody></tbody></table></div></div>
+      </section>
+
+      <section class="fd-section" id="charging">
+        <div class="fd-section-head"><div><div class="fd-eyebrow">02 / Charging</div><h2>Every charge, derived from Ford JSON</h2><p>Recorded energy comes from Ford's visible charging counter. Approximate totals use either readings in the same AC session or comparable sessions for the same vehicle and charger type in the selected JSON. Observed kW is an average over the portion with counter readings.</p></div><button class="fd-button fd-button-primary fd-download" data-download="charging" type="button">↓ Charging CSV</button></div>
+        <div class="fd-mini-kpis" id="chargingKpis"></div>
+        <p class="fd-method-note" id="rateBandNote"></p>
+        <div class="fd-chart-grid">
+          <article class="fd-chart-card"><div class="fd-chart-title"><h3>AC charging rates over time</h3><p>Measured-portion session averages · kW</p></div><div id="acRateChart" class="fd-chart"></div></article>
+          <article class="fd-chart-card"><div class="fd-chart-title"><h3>DC rate and starting battery level</h3><p>Each point is a DC session, not a peak-power reading</p></div><div id="dcSocChart" class="fd-chart"></div></article>
+        </div>
+        <div class="fd-table-card">
+          <div class="fd-table-head"><div><h3>Charging sessions</h3><p id="chargeTableSummary">All sessions in the selected export</p></div><div class="fd-table-filters"><label>Type <select id="chargeTypeFilter"><option value="all">All types</option><option value="AC">AC only</option><option value="DC">DC only</option></select></label><label>Month <select id="chargeMonthFilter"><option value="all">All months</option></select></label><label>Counter <select id="chargeQualityFilter"><option value="all">All</option><option value="early">Ends early</option><option value="complete">No early flag</option></select></label></div></div>
+          <div class="fd-table-wrap"><table id="chargeTable"><thead><tr><th>Charge from</th><th>Charge to</th><th>SOC from</th><th>SOC to</th><th>AC/DC</th><th>Recorded kWh</th><th>Estimated total</th><th>Observed kW</th><th>Time</th><th>Counter</th></tr></thead><tbody></tbody></table></div>
+          <div class="fd-table-bottom"><span id="chargeTableCount"></span><button class="fd-button fd-button-quiet" id="chargeLoadMore" type="button" hidden>Show more</button></div>
+        </div>
+        <p class="fd-method-note">“≥” marks incomplete visible counter coverage without a reset, such as an early tail or missing reading. Reset rows are marked separately because their reconstructed subtotals are uncertain. “≈” marks a rough estimate, excluded from recorded-energy totals; it is not a guaranteed minimum. The label below each estimate shows which method was used. “No early flag” does not guarantee a complete counter.</p>
+        <details class="fd-details"><summary>How the estimated totals are calculated</summary><p>The next charging state may supply a later time and battery percentage, but usually no final kWh reading. A later charging session starts a new counter. A higher battery percentage alone cannot establish how many kWh were delivered.</p><p>Where an AC session has a terminal state and enough measured counter history, the page extends its measured energy rate over the missing time and checks the result against its measured energy per SOC point. If that test is unavailable, it may use comparable, clean sessions for the same vehicle and charger type (AC or DC) in the selected Ford JSON to convert SOC gain to kWh. It adds a missing-tail estimate to a usable counter subtotal; after a counter reset or with no usable reading, it estimates the whole session from its full SOC gain. Reference count and observed kWh per SOC point are included in the charging CSV. The page leaves estimates unavailable when its evidence checks fail. SOC rounding, charging losses and changing conditions make either method approximate, not a meter reading or a guaranteed minimum.</p></details>
+      </section>
+
+      <section class="fd-section" id="travel">
+        <div class="fd-section-head"><div><div class="fd-eyebrow">03 / Travel</div><h2>Distance and movement</h2><p id="travelIntro"></p></div></div>
+        <div class="fd-story-grid" id="travelStories"></div>
+        <div class="fd-note-card"><strong>What this can and cannot count</strong><p>Odometer changes show distance, including days with substantial movement. Ignition intervals and coarse GPS points do not form a verified trip log. This report does not infer top speed or driving kWh/100 km without direct, interpretable measurements.</p></div>
+      </section>
+
+      <section class="fd-section" id="map">
+        <div class="fd-section-head"><div><div class="fd-eyebrow">04 / Map timeline</div><h2>Where the vehicle appeared and charged</h2><p>Switch between GPS observations and AC/DC charging stops. Markers group nearby coordinates into approximate areas.</p></div></div>
+        <div id="mapRoot" class="fd-map-root"></div>
+      </section>
+
+      <section class="fd-section" id="battery">
+        <div class="fd-section-head"><div><div class="fd-eyebrow">05 / Battery evidence</div><h2>What can we say about battery health?</h2><p>The export has battery percentage and range estimates, but no direct state-of-health or calibrated usable-capacity reading.</p></div></div>
+        <div class="fd-verdict"><span class="fd-verdict-icon">?</span><div><strong>No defensible SoH percentage from these files</strong><p id="batteryVerdict"></p></div></div>
+        <div class="fd-chart-grid">
+          <article class="fd-chart-card"><div class="fd-chart-title"><h3>Counter energy per SOC change</h3><p>Selected sessions · reported counter kWh per 100 displayed SOC points</p></div><div id="batteryProxyChart" class="fd-chart"></div></article>
+          <article class="fd-chart-card"><div class="fd-chart-title"><h3>Displayed range at 80% SOC</h3><p>Daily observations, then monthly medians · car's estimate</p></div><div id="range80Chart" class="fd-chart"></div></article>
+        </div>
+        <div class="fd-note-card"><strong>How to read these plots</strong><p>The energy/SOC ratio is a consistency check, not measured pack capacity. Whole-percent SOC, missing counter tails, battery conditioning and the unknown counter measurement point limit it. The dashboard range is an estimate that can change with recent driving and conditions; a dip or rebound alone does not show degradation or recovery. A credible SoH figure needs a battery-management diagnostic or a controlled capacity test with a suitable baseline.</p></div>
+      </section>
+
+      <section class="fd-section" id="events">
+        <div class="fd-section-head"><div><div class="fd-eyebrow">06 / Vehicle events</div><h2>Other signals in the export</h2><p>These are sampled telemetry and backend messages. Counts describe observed records or deduplicated transitions, not a complete activity diary.</p></div></div>
+        <div class="fd-story-grid" id="eventStories"></div>
+        <div class="fd-table-card"><h3>Logical record types</h3><div class="fd-table-wrap"><table id="recordTypesTable"><thead><tr><th>Record type</th><th>Source records</th></tr></thead><tbody></tbody></table></div></div>
+        <div class="fd-table-card"><h3>Remote command types</h3><div class="fd-table-wrap"><table id="commandTable"><thead><tr><th>Command</th><th>Distinct requests</th><th>Backend success</th><th>Failure</th><th>Timeout</th></tr></thead><tbody></tbody></table></div><p class="fd-method-note">Backend success does not independently prove a physical change at the vehicle.</p></div>
+        <div class="fd-table-card"><h3>Recorded event names</h3><div class="fd-table-wrap"><table id="eventNamesTable"><thead><tr><th>Event name</th><th>Source records</th></tr></thead><tbody></tbody></table></div></div>
+      </section>
+
+      <section class="fd-section" id="dictionary">
+        <div class="fd-section-head"><div><div class="fd-eyebrow">07 / Data dictionary</div><h2>Every field in the selected files</h2><p id="dictionaryIntro"></p></div><button class="fd-button fd-button-secondary fd-download" data-download="dictionary" type="button">↓ Dictionary CSV</button></div>
+        <div class="fd-dictionary-tools"><label class="fd-search-label">Find a field <input id="fieldSearch" type="search" placeholder="Search name or meaning"></label><label>Group <select id="fieldGroup"><option value="all">All groups</option></select></label><span id="fieldCountText"></span></div>
+        <div class="fd-table-card"><div class="fd-table-wrap"><table id="dictionaryTable"><thead><tr><th>Field name</th><th>Meaning</th><th>Type / unit</th><th>Occurrences</th><th>Occurrences / record</th><th>Category</th><th>Basis</th></tr></thead><tbody></tbody></table></div></div>
+        <details class="fd-details"><summary>Fields embedded inside text values</summary><p>Some raw attribute values contain JSON or a consent-list wrapper. Their nested keys are counted separately here.</p><div class="fd-table-wrap"><table id="embeddedTable"><thead><tr><th>Parent / key path</th><th>Meaning</th><th>Type</th><th>Parent records</th><th>Mentions</th></tr></thead><tbody></tbody></table></div></details>
+        <details class="fd-details"><summary>Observed JSON structure and schema</summary><p>The files contain an <code>attrList</code> array. Each entry has <code>attrName</code>, <code>attrValue</code>, <code>categoryCode</code>, <code>seqNum</code> and <code>tableName</code>. Raw values remain strings, even for numbers and dates. This is an observed schema, not an official Ford contract.</p><pre id="schemaPreview"></pre><button class="fd-button fd-button-secondary fd-download" data-download="schema" type="button">↓ JSON schema</button></details>
+      </section>
+
+      <section class="fd-section" id="downloads">
+        <div class="fd-section-head"><div><div class="fd-eyebrow">08 / Downloads</div><h2>Take the extracted data with you</h2><p>Downloads are generated from this import in your browser. All dates in these CSV files use Europe/Zurich local time plus a UTC timestamp column.</p></div></div>
+        <div class="fd-download-grid">
+          <button class="fd-download-card fd-download" data-download="charging" type="button"><strong>Charging sessions CSV</strong><span>Times, SOC, AC/DC, recorded kWh, approximate totals with method and reference counts, observed kW</span><em>↓ Download</em></button>
+          <button class="fd-download-card fd-download" data-download="gps" type="button"><strong>GPS observations CSV</strong><span>Distinct timed fixes, rounded coordinates and duplicate-row counts</span><em>↓ Download</em></button>
+          <button class="fd-download-card fd-download" data-download="odometer" type="button"><strong>Odometer CSV</strong><span>Timestamped kilometer readings used for distance analysis</span><em>↓ Download</em></button>
+          <button class="fd-download-card fd-download" data-download="battery" type="button"><strong>Battery proxy CSV</strong><span>Selected charge-counter energy per displayed SOC change</span><em>↓ Download</em></button>
+          <button class="fd-download-card fd-download" data-download="range80" type="button"><strong>80% range CSV</strong><span>Each vehicle range estimate recorded at exactly 80% SOC</span><em>↓ Download</em></button>
+          <button class="fd-download-card fd-download" data-download="events" type="button"><strong>Event summary CSV</strong><span>Record, event and command counts plus dated warning signals</span><em>↓ Download</em></button>
+          <button class="fd-download-card fd-download" data-download="dictionary" type="button"><strong>Field dictionary CSV</strong><span>Every observed field, meaning and occurrence count</span><em>↓ Download</em></button>
+        </div>
+        <div class="fd-note-card"><strong>Source and privacy</strong><p>The selected files are read through the browser's File API. No original JSON is embedded in this page or sent to a server. The map uses bundled offline geography; it does not request online map tiles. Start a new import at the top to replace the current analysis.</p></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="fd-footer">EV Data Studio · local, JSON-only analysis · field meanings are interpretations of Ford export names and observed values</footer>
+
+  <script id="fieldDefinitions" type="application/json">__FIELD_DEFS__</script>
+  <script id="offlineGeography" type="application/json">__GEOGRAPHY__</script>
+  <script id="analysisEngine" type="text/plain">__ENGINE_JS__</script>
+  <script>
+__MAP_JS__
+  </script>
+  <script>
+__APP_JS__
+  </script>
+</body>
+</html>
