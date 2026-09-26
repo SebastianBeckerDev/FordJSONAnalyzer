@@ -1,5 +1,5 @@
 # Only the dashboard source, built page, documentation, synthetic example,
-# and synthetic checks
+# report screenshots, and synthetic checks
 # belong in this repository. In particular, never stage Ford GDPR exports.
 /*
 !/.gitignore
@@ -21,3 +21,10 @@
 !/examples/
 /examples/*
 !/examples/synthetic_ford_export.json
+!/docs/
+/docs/*
+!/docs/dashboard-overview.png
+!/docs/dashboard-charts.png
+!/docs/dashboard-charging.png
+!/docs/dashboard-map.png
+!/docs/dashboard-downloads.png

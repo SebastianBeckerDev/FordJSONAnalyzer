@@ -8,6 +8,14 @@ The page is self-contained: its code, field descriptions, charts, and map geogra
 
 Open `index.html`, choose [`examples/synthetic_ford_export.json`](examples/synthetic_ford_export.json), and select **Build analysis**. The example follows the observed Ford export structure and includes fabricated AC and DC charges, battery state, travel, location, and vehicle events. Its identifiers, dates, coordinates, and readings are synthetic. Use your own Ford JSON files to analyze a real vehicle.
 
+## Screenshots
+
+These screenshots show the finished report loaded with the synthetic example. They contain no real vehicle data.
+
+![Dashboard overview loaded with the synthetic Ford JSON example](docs/dashboard-overview.png)
+
+[Overview charts](docs/dashboard-charts.png) · [Charging sessions](docs/dashboard-charging.png) · [Map timeline](docs/dashboard-map.png) · [CSV downloads](docs/dashboard-downloads.png)
+
 ## What the page builds
 
 - Overview charts for monthly odometer movement, visible charging energy, daily distance, and AC/DC mix.
