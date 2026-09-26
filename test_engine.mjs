@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { createReadStream, readFileSync, readdirSync, statSync } from "node:fs";
-import { basename, join, resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { Readable } from "node:stream";
+import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 
-const enginePath = join(import.meta.dirname || resolve("ford_local_dashboard"), "engine.js");
+const enginePath = join(dirname(fileURLToPath(import.meta.url)), "engine.js");
 const source = readFileSync(enginePath, "utf8");
 const worker = { onmessage: null, postMessage: () => {} };
 vm.runInNewContext(source, { self: worker, TextDecoder }, { filename: enginePath });

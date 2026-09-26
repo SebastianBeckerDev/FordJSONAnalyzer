@@ -4,6 +4,10 @@ Open **`index.html`** in a current Chrome, Edge, Firefox, or Safari browser. Sel
 
 The page is self-contained: its code, field descriptions, charts, and map geography are bundled in one HTML file. The Ford JSON data is **not** bundled; select it when you open the page. The map works offline and does not request tiles.
 
+## Try the example
+
+Open `index.html`, choose [`examples/synthetic_ford_export.json`](examples/synthetic_ford_export.json), and select **Build analysis**. The example follows the observed Ford export structure and includes fabricated AC and DC charges, battery state, travel, location, and vehicle events. Its identifiers, dates, coordinates, and readings are synthetic. Use your own Ford JSON files to analyze a real vehicle.
+
 ## What the page builds
 
 - Overview charts for monthly odometer movement, visible charging energy, daily distance, and AC/DC mix.
