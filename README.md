@@ -12,9 +12,25 @@ Open `index.html`, choose [`examples/synthetic_ford_export.json`](examples/synth
 
 These screenshots show the finished report loaded with the synthetic example. They contain no real vehicle data.
 
+### Overview
+
 ![Dashboard overview loaded with the synthetic Ford JSON example](docs/dashboard-overview.png)
 
-[Overview charts](docs/dashboard-charts.png) · [Charging sessions](docs/dashboard-charging.png) · [Map timeline](docs/dashboard-map.png) · [CSV downloads](docs/dashboard-downloads.png)
+### Overview charts
+
+![Distance, charging energy, and AC/DC overview charts](docs/dashboard-charts.png)
+
+### Charging sessions
+
+![Charging rates and AC/DC charging session table](docs/dashboard-charging.png)
+
+### Map timeline
+
+![Synthetic GPS and charging-stop map timeline](docs/dashboard-map.png)
+
+### CSV downloads
+
+![Available extracted-data CSV downloads](docs/dashboard-downloads.png)
 
 ## What the page builds
 
