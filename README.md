@@ -1,5 +1,11 @@
 # Local Ford EV Data Studio
 
+Turn Ford's raw vehicle data into a clear picture of everyday use. The dashboard brings charging sessions, AC/DC type, battery levels, recorded energy and observed charging rates, distance trends, approximate locations, and vehicle events together in one visual report. Gaps and estimates are clearly labelled, and your files stay on your computer.
+
+**Where to get the JSON files:** Request a copy of your personal and connected-vehicle data through the privacy or data-access page on Ford's website for your country. Save the JSON files Ford provides; if they arrive in a ZIP file, extract them first.
+
+## Open the dashboard
+
 Open **`index.html`** in a current Chrome, Edge, Firefox, or Safari browser. Select one or more original Ford GDPR JSON export files and choose **Build analysis**. The page reads the files on your device and produces the full dashboard and its CSV downloads. No server, installation, or preprocessing is needed.
 
 The page is self-contained: its code, field descriptions, charts, and map geography are bundled in one HTML file. The Ford JSON data is **not** bundled; select it when you open the page. The map works offline and does not request tiles.
